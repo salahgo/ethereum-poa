@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geth-node
+  namespace: ethereum
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: geth-node
+  template:
+    metadata:
+      labels:
+        app: geth-node
+    spec:
+      containers:
+      - name: geth
+        image: ethereum/client-go:v1.13.14
+        args:
+          - --datadir=/root/.ethereum
+          - --config=/root/config.toml
+          - --networkid=987654321
+          - --http
+          - --http.addr=0.0.0.0
+          - --http.port=8545
+          - --http.api=eth,net,web3,admin,personal
+          - --http.corsdomain=*
+          - --allow-insecure-unlock
+          - --verbosity=3
+          - --bootnodes=enode://d4ae7af2d8c467d867bdc2b82f2f369beaa4fc1225417a479d43d895c18c6b39874c4cd8c3712c83e6084597d6bc90eb21e1f5dde627fe5be55fc4eebc9787b8@172.20.0.2:30303
+        ports:
+        - containerPort: 8545
+          name: http
+        - containerPort: 30303
+          name: p2p
+        volumeMounts:
+        - name: data
+          mountPath: /root/.ethereum
+        - name: config
+          mountPath: /root/config
+          readOnly: true
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: geth-data
+      - name: config
+        configMap:
+          name: ethereum-config
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
+      restartPolicy: Always

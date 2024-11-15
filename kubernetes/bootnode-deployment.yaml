@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bootnode
+  namespace: ethereum
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bootnode
+  template:
+    metadata:
+      labels:
+        app: bootnode
+    spec:
+      containers:
+      - name: bootnode
+        image: ethereum/client-go:v1.13.14
+        command:
+          - bootnode
+          - --nodekey=/root/boot.key
+          - --addr=0.0.0.0:30303
+        ports:
+        - containerPort: 30303
+          protocol: TCP
